@@ -1,0 +1,32 @@
+{
+  "type": "adv_zapyt",
+  "label": "Адвокатський запит",
+  "description": "Запит на підставі ст. 24 ЗУ «Про адвокатуру»",
+  "law": "Ст. 24 Закону України «Про адвокатуру та адвокатську діяльність» № 5076-VI",
+  "sections": [
+    {
+      "title": "Адресат",
+      "fields": [
+        { "name": "adresat_posada", "label": "Посада керівника", "placeholder": "Начальнику", "required": true },
+        { "name": "adresat_organ", "label": "Назва органу / установи", "placeholder": "ГУ Національної поліції...", "required": true },
+        { "name": "adresat_pib", "label": "ПІБ керівника", "placeholder": "Петренку П.П.", "required": false }
+      ]
+    },
+    {
+      "title": "Відомості про адвоката",
+      "fields": [
+        { "name": "advokat_pib", "label": "ПІБ адвоката", "placeholder": "Шевченко Олена Іванівна", "required": true },
+        { "name": "advokat_svid", "label": "Номер свідоцтва адвоката", "placeholder": "КВ 1234", "required": true },
+        { "name": "advokat_rp", "label": "Рег. посвідчення (необов'язково)", "placeholder": "КВ 4321/24", "required": false }
+      ]
+    },
+    {
+      "title": "Клієнт та запит",
+      "fields": [
+        { "name": "klient_pib", "label": "ПІБ клієнта (в інтересах)", "placeholder": "Іваненко Іван Іванович", "required": true },
+        { "name": "tekst", "label": "Зміст запиту (що запитується)", "type": "textarea", "placeholder": "Прошу надати копії матеріалів...", "required": true },
+        { "name": "data", "label": "Дата складання", "type": "date", "required": true }
+      ]
+    }
+  ]
+}

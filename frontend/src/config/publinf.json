@@ -1,0 +1,40 @@
+{
+  "type": "publinf",
+  "label": "Запит на публ. інформацію",
+  "description": "Запит відповідно до ЗУ № 2939-VI",
+  "law": "Закон України «Про доступ до публічної інформації» № 2939-VI від 13.01.2011",
+  "sections": [
+    {
+      "title": "Адресат",
+      "fields": [
+        { "name": "adresat_posada", "label": "Посада керівника", "placeholder": "Керівнику", "required": true },
+        { "name": "adresat_organ", "label": "Назва органу / установи", "placeholder": "Міністерства юстиції України", "required": true },
+        { "name": "adresat_pib", "label": "ПІБ керівника (кому?)", "placeholder": "(необов'язково)", "required": false }
+      ]
+    },
+    {
+      "title": "Запитувач",
+      "fields": [
+        { "name": "zayavnyk_pib_rod", "label": "ПІБ (Родовий відм. — від кого?)", "placeholder": "Масовця В'ячеслава Олександровича", "required": true },
+        { "name": "zayavnyk_pib", "label": "ПІБ (Називний відм. — для підпису)", "placeholder": "Масовець В'ячеслав Олександрович", "required": true },
+        { "name": "zayavnyk_adresa", "label": "Адреса для листування", "placeholder": "м. Київ, вул. Хрещатик, 1, кв. 10", "required": true },
+        { "name": "zayavnyk_telefon", "label": "Телефон", "placeholder": "+38 050 000 00 00", "required": false },
+        { "name": "zayavnyk_email", "label": "E-mail", "placeholder": "example@email.com", "required": false }
+      ]
+    },
+    {
+      "title": "Зміст запиту",
+      "fields": [
+        { "name": "tekst", "label": "Яку інформацію запитуєте", "type": "textarea", "placeholder": "Прошу надати інформацію про...", "required": true },
+        {
+          "name": "sposib_otrymannya",
+          "label": "Спосіб отримання відповіді",
+          "type": "select",
+          "options": ["електронною поштою", "поштою за вказаною адресою", "в електронній формі на офіційному сайті", "особисто"],
+          "required": true
+        },
+        { "name": "data", "label": "Дата складання", "type": "date", "required": true }
+      ]
+    }
+  ]
+}
