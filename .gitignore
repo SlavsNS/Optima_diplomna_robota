@@ -1,6 +1,14 @@
-node_modules/
+# Секрети та середовище
 .env
+.env.local
+
+# Залежності
+node_modules/
+
+# Логи та системні файли
+logs/
+*.log
+.DS_Store
 dist/
 build/
-*.pdf
-.DS_Store
+database.sqlite  # Якщо не хочеш заливати базу з даними

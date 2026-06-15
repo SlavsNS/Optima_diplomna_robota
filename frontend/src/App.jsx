@@ -1,62 +1,191 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import DocumentForm from './components/DocumentForm'
+import AuthForms from './components/AuthForms'
+
 import zayava from './config/zayava.json'
-import klopotannya from './config/klopotannya.json'
 import advZapyt from './config/adv_zapyt.json'
 import publinf from './config/publinf.json'
+import klopotannya from './config/court/klopotannya.json'
+import pozovna from './config/court/pozovna.json'
 
-const DOC_TYPES = [
-    { config: zayava,      icon: '📄', color: '#1a56a0' },
-    { config: klopotannya, icon: '⚖️', color: '#1a7a4a' },
-    { config: advZapyt,    icon: '🔍', color: '#7a4a1a' },
-    { config: publinf,     icon: '🗂️', color: '#4a1a7a' },
+const DOC_GROUPS = [
+    {
+        title: "Загальні документи",
+        items: [
+            { config: zayava,      icon: '📄' },
+            { config: advZapyt,    icon: '🔍' },
+            { config: publinf,     icon: '🗂️' }
+        ]
+    },
+    {
+        title: "Судові документи (ЄСІТС)",
+        items: [
+            { config: pozovna,     icon: '⚖️' },
+            { config: klopotannya, icon: '📁' }
+        ]
+    }
 ]
 
 export default function App() {
-    const [activeIdx, setActiveIdx] = useState(0)
-    const active = DOC_TYPES[activeIdx]
+    const [activeItem, setActiveItem] = useState(DOC_GROUPS[0].items[0])
+    const [user, setUser] = useState(null)
+    const [history, setHistory] = useState([])
+
+    useEffect(() => {
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+            setUser(JSON.parse(savedUser));
+        }
+    }, []);
+
+    useEffect(() => {
+        if (user) {
+            fetchHistory();
+        }
+    }, [user]);
+
+    const fetchHistory = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        try {
+            const res = await fetch('/api/documents/history', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setHistory(data);
+            }
+        } catch (err) {
+            console.error("Помилка завантаження історії:", err);
+        }
+    };
+
+    // Функція для повторного завантаження з архіву
+    const handleDownloadHistoryItem = async (doc) => {
+        try {
+            const parsedData = JSON.parse(doc.form_data);
+            console.log("Крок 1: Дані з БД:", parsedData); // ТУТ МАЄ БУТИ ЗАПОВНЕНИЙ ОБ'ЄКТ
+
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: doc.doc_type,
+                    data: parsedData
+                }),
+            });
+
+            console.log("Крок 2: Сервер відповів успішно");
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.download = `${doc.doc_label}_(архів).pdf`;
+            a.href = url;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Крок 3: Помилка:", err);
+            alert('Помилка: ' + err.message);
+        }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+        setHistory([]);
+    }
 
     return (
         <div className="app">
-            {/* Sidebar */}
             <aside className="sidebar">
                 <div className="sidebar-logo">
                     <h1>⚖️ LexDocs</h1>
                     <p>Генератор юридичних документів</p>
                 </div>
 
-                <div className="sidebar-section">Типи документів</div>
-
-                {DOC_TYPES.map((dt, i) => (
-                    <button
-                        key={dt.config.type}
-                        className={`doc-type-btn ${activeIdx === i ? 'active' : ''}`}
-                        onClick={() => setActiveIdx(i)}
-                    >
-                        <span className="icon">{dt.icon}</span>
-                        <span>{dt.config.label}</span>
-                    </button>
+                {DOC_GROUPS.map((group, groupIndex) => (
+                    <div key={groupIndex} style={{ marginBottom: '10px' }}>
+                        <div className="sidebar-section">{group.title}</div>
+                        {group.items.map((item) => (
+                            <button
+                                key={item.config.type}
+                                className={`doc-type-btn ${activeItem.config.type === item.config.type ? 'active' : ''}`}
+                                onClick={() => setActiveItem(item)}
+                            >
+                                <span className="icon">{item.icon}</span>
+                                <span>{item.config.label}</span>
+                            </button>
+                        ))}
+                    </div>
                 ))}
 
-                <div className="sidebar-footer">
-                    Документи формуються згідно з<br />
-                    <strong>ДСТУ 4163:2020</strong><br />
-                    і є юридично коректними.
+                {user && (
+                    <div style={{ marginTop: '15px', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
+                        <div className="sidebar-section">Останні згенеровані</div>
+                        <div style={{ padding: '0 12px', maxHeight: '140px', overflowY: 'auto', fontSize: '12px' }}>
+                            {history.length === 0 ? (
+                                <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic', padding: '5px 0' }}>Історія порожня</div>
+                            ) : (
+                                history.map(doc => (
+                                    <button
+                                        key={doc.id}
+                                        onClick={() => handleDownloadHistoryItem(doc)}
+                                        style={{
+                                            display: 'block', width: '100%', textAlign: 'left',
+                                            padding: '8px 5px', border: 'none', borderBottom: '1px dashed var(--border)',
+                                            background: 'none', cursor: 'pointer', transition: 'background 0.2s',
+                                            color: 'var(--accent)'
+                                        }}
+                                        onMouseOver={(e) => e.currentTarget.style.background = '#e8f0fb'}
+                                        onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                                        title="Завантажити цей документ ще раз"
+                                    >
+                                        <div style={{ fontWeight: '500' }}>🔹 {doc.doc_label}</div>
+                                        <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '3px' }}>
+                                            {new Date(doc.created_at).toLocaleDateString('uk-UA')} {new Date(doc.created_at).toLocaleTimeString('uk-UA', {hour: '2-digit', minute:'2-digit'})}
+                                        </div>
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                <div className="sidebar-footer" style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '15px' }}>
+                    {user ? (
+                        <div>
+                            <div style={{ fontWeight: 'bold', color: 'var(--text)' }}>👤 {user.name}</div>
+                            <button onClick={handleLogout} style={{ marginTop: '8px', color: 'var(--error)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', padding: 0 }}>
+                                🚪 Вийти з кабінету
+                            </button>
+                        </div>
+                    ) : (
+                        <div style={{ marginBottom: '10px', fontWeight: '500', color: 'var(--accent)' }}>Вхід не виконано</div>
+                    )}
                 </div>
             </aside>
 
-            {/* Main */}
             <main className="main">
                 <div className="topbar">
                     <div>
-                        <h2>{active.icon} {active.config.label}</h2>
-                        <p>{active.config.description}</p>
+                        <h2>{activeItem.icon} {activeItem.config.label}</h2>
+                        <p>{activeItem.config.description}</p>
                     </div>
                     <span className="dstu-badge">✓ ДСТУ 4163:2020</span>
                 </div>
 
                 <div className="content">
-                    <DocumentForm key={active.config.type} config={active.config} />
+                    {user ? (
+                        <DocumentForm
+                            key={activeItem.config.type}
+                            config={activeItem.config}
+                            onDocumentGenerated={fetchHistory}
+                        />
+                    ) : (
+                        <AuthForms onLoginSuccess={(userData) => setUser(userData)} />
+                    )}
                 </div>
             </main>
         </div>

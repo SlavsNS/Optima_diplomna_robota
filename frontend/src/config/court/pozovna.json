@@ -1,0 +1,70 @@
+{
+  "type": "court_pozovna",
+  "label": "Позовна заява / Скарга",
+  "description": "Процесуальний документ до суду (ЄСІТС)",
+  "law": "ЦПК / КПК / КАС України",
+  "sections": [
+    {
+      "title": "Суд",
+      "fields": [
+        { "name": "sud_nazva", "label": "Назва суду", "placeholder": "Дарницький районний суд м. Києва", "required": true }
+      ]
+    },
+    {
+      "title": "Заявник / Позивач",
+      "fields": [
+        { "name": "позивач_ПІБ", "label": "ПІБ Позивача", "placeholder": "Масовець В'ячеслав Олександрович", "required": true },
+        { "name": "позивач_РНОКПП", "label": "РНОКПП", "placeholder": "3928014331", "required": true },
+        { "name": "позивач_адреса", "label": "Адреса", "placeholder": "07411, Київська обл...", "required": true },
+        { "name": "позивач_телефон", "label": "Телефон", "placeholder": "+380687130471", "required": true },
+        { "name": "позивач_email", "label": "E-mail", "placeholder": "slavamasovec@gmail.com", "required": true },
+        {
+          "name": "позивач_єсітс",
+          "label": "Є кабінет в ЄСІТС?",
+          "type": "select",
+          "options": [
+            { "value": "так", "label": "Так (Зареєстровано)" },
+            { "value": "ні", "label": "Ні (Відсутні відомості)" }
+          ],
+          "required": true
+        }
+      ]
+    },
+    {
+      "title": "Відповідач / Боржник",
+      "fields": [
+        { "name": "відповідач_ПІБ", "label": "ПІБ Відповідача", "placeholder": "Іванов Іван Іванович", "required": true },
+        { "name": "відповідач_РНОКПП", "label": "РНОКПП", "placeholder": "2875516798", "required": false },
+        { "name": "відповідач_адреса", "label": "Адреса", "placeholder": "03158, м. Київ...", "required": true },
+        { "name": "відповідач_телефон", "label": "Телефон", "placeholder": "+38067...", "required": false },
+        {
+          "name": "відповідач_єсітс",
+          "label": "Є кабінет в ЄСІТС?",
+          "type": "select",
+          "options": [
+            { "value": "так", "label": "Так (Зареєстровано)" },
+            { "value": "ні", "label": "Ні (Відсутні відомості)" }
+          ],
+          "required": true
+        }
+      ]
+    },
+    {
+      "title": "Зміст документа",
+      "fields": [
+        { "name": "назва_документа", "label": "Назва документа (ПОЗОВНА ЗАЯВА, СКАРГА тощо)", "placeholder": "ПОЗОВНА ЗАЯВА", "required": true },
+        { "name": "ціна_позову", "label": "Ціна позову (якщо є)", "placeholder": "Без ціни позову", "required": false },
+        { "name": "обставини", "type": "textarea", "label": "Обставини справи (Текст)", "required": true }
+      ]
+    },
+    {
+      "title": "Прохальна частина та додатки",
+      "fields": [
+        { "name": "статті", "label": "Керуючись якими статтями (напр. ст. 442 ЦПК України)", "placeholder": "ст. 442 ЦПК України", "required": true },
+        { "name": "вимоги", "type": "textarea", "label": "ПРОШУ: (Перелік вимог)", "placeholder": "1. Задовольнити...\n2. Стягнути...", "required": true },
+        { "name": "додатки", "type": "textarea", "label": "Додатки:", "placeholder": "1. Копія паспорта...\n2. Квитанція...", "required": false },
+        { "name": "data", "label": "Дата складання", "type": "date", "required": true }
+      ]
+    }
+  ]
+}
