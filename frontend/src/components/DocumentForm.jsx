@@ -75,15 +75,20 @@ export default function DocumentForm({ config, onDocumentGenerated }) {
     }
 
     const handleGenerateAi = async (fieldName, fieldLabel) => {
-        if (!aiPrompt.trim()) return;
+    if (!aiPrompt.trim()) return;
 
-        setIsAiLoading(true);
-        try {
-            const response = await fetch('/api/ai-draft', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ fieldName: fieldLabel, prompt: aiPrompt }),
-            });
+    setIsAiLoading(true);
+    try {
+        const response = await fetch('/api/ai-draft', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                fieldName: fieldLabel, 
+                prompt: aiPrompt,
+                docType: config.type,
+                docLabel: config.label, 
+            }),
+        });
 
             if (!response.ok) throw new Error('ШІ не зміг згенерувати текст');
 

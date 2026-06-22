@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react'
-import DocumentForm from './components/DocumentForm'
-import AuthForms from './components/AuthForms'
+import { useState, useEffect } from 'react';
+import DocumentForm from './components/DocumentForm';
+import AuthForms from './components/AuthForms';
 
-import zayava from './config/zayava.json'
-import advZapyt from './config/adv_zapyt.json'
-import publinf from './config/publinf.json'
-import klopotannya from './config/court/klopotannya.json'
-import pozovna from './config/court/pozovna.json'
+import zayava from './config/zayava.json';
+import advZapyt from './config/adv_zapyt.json';
+import publinf from './config/publinf.json';
+import klopotannya from './config/court/klopotannya.json';
+import pozovna from './config/court/pozovna.json';
 
 const DOC_GROUPS = [
     {
@@ -24,13 +24,14 @@ const DOC_GROUPS = [
             { config: klopotannya, icon: '📁' }
         ]
     }
-]
+];
 
 export default function App() {
-    const [activeItem, setActiveItem] = useState(DOC_GROUPS[0].items[0])
-    const [user, setUser] = useState(null)
-    const [history, setHistory] = useState([])
+    const [activeItem, setActiveItem] = useState(DOC_GROUPS[0].items[0]);
+    const [user, setUser] = useState(null);
+    const [history, setHistory] = useState([]);
 
+    // Перевірка збереженої сесії при першому завантаженні
     useEffect(() => {
         const savedUser = localStorage.getItem('user');
         if (savedUser) {
@@ -38,6 +39,7 @@ export default function App() {
         }
     }, []);
 
+    // Завантаження історії при зміні користувача
     useEffect(() => {
         if (user) {
             fetchHistory();
@@ -64,7 +66,7 @@ export default function App() {
     const handleDownloadHistoryItem = async (doc) => {
         try {
             const parsedData = JSON.parse(doc.form_data);
-            console.log("Крок 1: Дані з БД:", parsedData); // ТУТ МАЄ БУТИ ЗАПОВНЕНИЙ ОБ'ЄКТ
+            console.log("Крок 1: Дані з БД:", parsedData);
 
             const response = await fetch('/api/generate', {
                 method: 'POST',
@@ -90,12 +92,36 @@ export default function App() {
         }
     };
 
+    // Функція для видалення документа з архіву
+    const handleDeleteHistoryItem = async (id) => {
+        if (!window.confirm("Ви дійсно хочете видалити цей документ з архіву?")) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`/api/documents/history/${id}`, { 
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                setHistory(prevHistory => prevHistory.filter(doc => doc.id !== id));
+            } else {
+                const errData = await response.json();
+                alert(`Помилка: ${errData.error || 'Не вдалося видалити'}`);
+            }
+        } catch (error) {
+            console.error("Помилка при видаленні:", error);
+        }
+    };
+
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUser(null);
         setHistory([]);
-    }
+    };
 
     return (
         <div className="app">
@@ -129,24 +155,42 @@ export default function App() {
                                 <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic', padding: '5px 0' }}>Історія порожня</div>
                             ) : (
                                 history.map(doc => (
-                                    <button
+                                    <div
                                         key={doc.id}
-                                        onClick={() => handleDownloadHistoryItem(doc)}
                                         style={{
-                                            display: 'block', width: '100%', textAlign: 'left',
-                                            padding: '8px 5px', border: 'none', borderBottom: '1px dashed var(--border)',
-                                            background: 'none', cursor: 'pointer', transition: 'background 0.2s',
-                                            color: 'var(--accent)'
+                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                            padding: '8px 5px', borderBottom: '1px dashed var(--border)',
+                                            transition: 'background 0.2s', color: 'var(--accent)'
                                         }}
                                         onMouseOver={(e) => e.currentTarget.style.background = '#e8f0fb'}
                                         onMouseOut={(e) => e.currentTarget.style.background = 'none'}
-                                        title="Завантажити цей документ ще раз"
                                     >
-                                        <div style={{ fontWeight: '500' }}>🔹 {doc.doc_label}</div>
-                                        <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '3px' }}>
-                                            {new Date(doc.created_at).toLocaleDateString('uk-UA')} {new Date(doc.created_at).toLocaleTimeString('uk-UA', {hour: '2-digit', minute:'2-digit'})}
+                                        {/* Ліва частина - клікабельна для скачування */}
+                                        <div 
+                                            onClick={() => handleDownloadHistoryItem(doc)} 
+                                            style={{ cursor: 'pointer', flex: 1 }}
+                                            title="Завантажити цей документ ще раз"
+                                        >
+                                            <div style={{ fontWeight: '500' }}>🔹 {doc.doc_label}</div>
+                                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '3px' }}>
+                                                {new Date(doc.created_at).toLocaleDateString('uk-UA')} {new Date(doc.created_at).toLocaleTimeString('uk-UA', {hour: '2-digit', minute:'2-digit'})}
+                                            </div>
                                         </div>
-                                    </button>
+                                        
+                                        {/* Права частина - кнопка видалення */}
+                                        <button 
+                                            onClick={() => handleDeleteHistoryItem(doc.id)}
+                                            style={{ 
+                                                background: 'none', border: 'none', cursor: 'pointer', 
+                                                padding: '5px', fontSize: '14px', opacity: 0.7 
+                                            }}
+                                            onMouseOver={(e) => e.currentTarget.style.opacity = 1}
+                                            onMouseOut={(e) => e.currentTarget.style.opacity = 0.7}
+                                            title="Видалити документ"
+                                        >
+                                            🗑️
+                                        </button>
+                                    </div>
                                 ))
                             )}
                         </div>
@@ -189,5 +233,5 @@ export default function App() {
                 </div>
             </main>
         </div>
-    )
+    );
 }

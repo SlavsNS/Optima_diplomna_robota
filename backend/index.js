@@ -25,19 +25,33 @@ app.use('/api/documents', documentsRoutes);
 // --- ШІ-Асистент для документів ---
 app.post('/api/ai-draft', async (req, res) => {
     try {
-        const { fieldName, prompt } = req.body;
+        const { fieldName, prompt, docType, docLabel } = req.body;
+        console.log('docType:', docType, '| docLabel:', docLabel); // ← сюди
 
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-        const aiPrompt = `Ти — висококваліфікований український юрист. Твоє завдання — написати офіційний юридичний текст для поля "${fieldName}" у судовому документі.
-Ситуація клієнта: ${prompt}
+        const docDescriptions = {
+            'zayava': `звичайна заява-звернення громадянина керівнику організації або органу влади.
+ПРИКЛАД правильного тексту: "Прошу надати мені відпустку без збереження заробітної плати тривалістю 5 календарних днів з 01.07.2026 у зв'язку з сімейними обставинами."
+Текст починається з "Прошу..." або "Звертаюсь з проханням...". Короткий, простий. БЕЗ слів: суд, клопотання, провадження, позивач, ЦПК, КПК, КАС.`,
+            'klopotannya': `процесуальне клопотання до суду. Використовуй ЦПК/КАС/КПК та судову термінологію.`,
+            'adv_zapyt': `адвокатський запит відповідно до ст. 24 ЗУ "Про адвокатуру". Офіційний стиль.`,
+            'publinf': `запит на публічну інформацію відповідно до ЗУ "Про доступ до публічної інформації".`,
+        };
 
-Вимоги:
-1. Тільки українською мовою.
-2. Суворий діловий та юридичний стиль (ДСТУ, канцеляризми).
-3. Якщо можливо, додай посилання на релевантні статті ЦПК/КПК/КАС України.
-4. ОДРАЗУ видавай готовий текст. Жодних привітань, пояснень чи фраз "Ось ваш текст".`;
+        const docDescription = docDescriptions[docType] || docLabel;
+
+        const aiPrompt = `Ти — український юрист. Напиши текст для поля "${fieldName}".
+
+ТИП ДОКУМЕНТА: ${docDescription}
+
+Ситуація: ${prompt}
+
+Правила:
+- Тільки українська мова
+- Стиль відповідно до типу документа
+- ОДРАЗУ готовий текст, без пояснень`;
 
         const result = await model.generateContent(aiPrompt);
         res.json({ text: result.response.text().trim() });
@@ -50,3 +64,4 @@ app.post('/api/ai-draft', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`LexDocs backend running on http://localhost:${PORT}`);
 });
+

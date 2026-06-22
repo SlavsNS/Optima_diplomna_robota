@@ -62,4 +62,28 @@ router.get('/check-db', (req, res) => {
     });
 });
 
+// 3. ВИДАЛИТИ ДОКУМЕНТ З ІСТОРІЇ
+router.delete('/history/:id', authenticateToken, (req, res) => {
+    const docId = req.params.id;
+    const userId = req.user.id; // Беремо ID юзера з токена для безпеки
+
+    // Видаляємо лише той документ, який належить поточному авторизованому юзеру
+    const sql = `DELETE FROM documents WHERE id = ? AND user_id = ?`;
+    
+    db.run(sql, [docId, userId], function(err) {
+        if (err) {
+            console.error("Помилка БД при видаленні:", err);
+            return res.status(500).json({ error: 'Помилка видалення документа з бази' });
+        }
+        
+        // this.changes показує, скільки рядків було видалено.
+        // Якщо 0, значить документа з таким ID немає, або він належить іншому користувачу.
+        if (this.changes === 0) {
+            return res.status(404).json({ error: 'Документ не знайдено або у вас немає прав на його видалення' });
+        }
+        
+        res.status(200).json({ success: true, message: 'Документ успішно видалено', id: docId });
+    });
+});
+
 module.exports = router;
